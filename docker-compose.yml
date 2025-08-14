@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   # ==========================================
   # LOCALSTACK - Servicios AWS Locales
@@ -25,11 +27,12 @@ services:
       - HOSTNAME=localstack
 
       # AWS Configuración
-
+      - AWS_DEFAULT_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-
     networks:
       - la-huella-network
 
