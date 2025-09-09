@@ -27,6 +27,26 @@ awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb describe-table \
   --table-name "$TABLE_NAME" --region "$AWS_DEFAULT_REGION" \
   --query 'Table.TableName'
 
+# DynamoDB - Tabla products
+PRODUCTS_TABLE="la-huella-products"
+echo "[DynamoDB] Creando tabla $PRODUCTS_TABLE"
+awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb create-table \
+  --table-name "$PRODUCTS_TABLE" \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region "$AWS_DEFAULT_REGION" || true
+
+# DynamoDB - Tabla analytics
+ANALYTICS_TABLE="la-huella-analytics"
+echo "[DynamoDB] Creando tabla $ANALYTICS_TABLE"
+awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb create-table \
+  --table-name "$ANALYTICS_TABLE" \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region "$AWS_DEFAULT_REGION" || true
+  
 # SQS
 QUEUE_NAME="la-huella-processing-queue"
 echo "[SQS] Creando cola $QUEUE_NAME"
