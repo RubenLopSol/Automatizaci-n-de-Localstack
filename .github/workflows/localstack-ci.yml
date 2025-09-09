@@ -28,7 +28,9 @@ jobs:
         run: mkdir -p "$LOG_DIR"
 
       - name: Parar contenedores existentes
-        run: docker compose -f "$COMPOSE_FILE" down || true
+        run: |
+          docker compose -f "$COMPOSE_FILE" down || true
+          docker rm -f localstack || true
 
       - name: Actualizar imágenes Docker
         run: docker compose -f "$COMPOSE_FILE" pull || true
