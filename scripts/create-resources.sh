@@ -13,13 +13,13 @@ echo "[S3] Creando bucket s3://$BUCKET_NAME"
 awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" s3 mb "s3://$BUCKET_NAME" --region "$AWS_DEFAULT_REGION" || true
 awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" s3 ls
 
-# DynamoDB
-TABLE_NAME="la-huella-comments"
-echo "[DynamoDB] Creando tabla $TABLE_NAME"
+# DynamoDB - Tabla comments
+TABLE_COMMENTS="la-huella-comments"
+echo "[DynamoDB] Creando tabla $TABLE_COMMENTS"
 awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb create-table \
-  --table-name "$TABLE_NAME" \
-  --attribute-definitions AttributeName=comment_id,AttributeType=S \
-  --key-schema AttributeName=comment_id,KeyType=HASH \
+  --table-name "$TABLE_COMMENTS" \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
   --region "$AWS_DEFAULT_REGION" || true
 
