@@ -1,0 +1,83 @@
+name: Localstack CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: localstack-ci
+  cancel-in-progress: false
+
+jobs:
+  deploy-localstack:
+    runs-on: self-hosted   # tu runner en local/VM
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'eu-west-1' }}
+      LOCALSTACK_ENDPOINT: http://localhost:4566
+      COMPOSE_FILE: docker-compose.yml
+      LOG_DIR: logs
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Crear carpeta de logs
+        run: mkdir -p "$LOG_DIR"
+
+      - name: Parar contenedores existentes
+        run: docker compose -f "$COMPOSE_FILE" down || true
+
+      - name: Actualizar imágenes Docker
+        run: docker compose -f "$COMPOSE_FILE" pull || true
+
+      - name: Iniciar Localstack
+        run: |
+          docker compose -f "$COMPOSE_FILE" up -d localstack
+          timeout 60s sh -c 'docker compose -f "$COMPOSE_FILE" logs -f localstack' \
+            | tee "$LOG_DIR/localstack-startup.log" || true
+
+      - name: Esperar a que Localstack esté listo
+        run: sleep 60
+
+      - name: Instalar awslocal y awscli si no están
+        run: |
+          if ! command -v awslocal >/dev/null 2>&1; then
+            python3 -m pip install --user awscli-local || pip3 install --user awscli-local
+          fi
+          if ! command -v aws >/dev/null 2>&1; then
+            python3 -m pip install --user awscli || pip3 install --user awscli
+          fi
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          awslocal --version
+          aws --version
+
+      - name: Crear recursos básicos (S3, DynamoDB, SQS, Logs…)
+        run: |
+          chmod +x ./scripts/create-resources.sh
+          ./scripts/create-resources.sh 2>&1 | tee "$LOG_DIR/create-resources.log"
+
+      - name: Insertar datos de ejemplo
+        run: |
+          chmod +x ./localstack-init/02-insert-sample-data.sh
+          ./localstack-init/02-insert-sample-data.sh 2>&1 | tee "$LOG_DIR/insert-sample-data.log"
+
+      - name: Verificar recursos
+        run: |
+          chmod +x ./scripts/verify.sh
+          ./scripts/verify.sh 2>&1 | tee "$LOG_DIR/verify.log"
+
+      - name: Capturar logs docker compose
+        if: always()
+        run: |
+          docker compose -f "$COMPOSE_FILE" ps > "$LOG_DIR/compose-ps.txt" || true
+          docker compose -f "$COMPOSE_FILE" logs > "$LOG_DIR/compose-logs.txt" || true
+
+      - name: Subir artifacts (logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: localstack-logs
+          path: logs/
