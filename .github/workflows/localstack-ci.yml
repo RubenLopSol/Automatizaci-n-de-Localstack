@@ -85,8 +85,3 @@ jobs:
           name: localstack-logs
           path: logs/
       
-      - name: Down + prune (final)
-        if: always()
-        run: |
-          docker compose -f "$COMPOSE_FILE" down -v --remove-orphans || true
-          docker volume prune -f || true
