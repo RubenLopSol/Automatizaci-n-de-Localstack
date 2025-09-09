@@ -21,14 +21,6 @@ jobs:
       LOG_DIR: logs
 
     steps:
-      - name: Pre-clean workspace (fix perms)
-        run: |
-          # 1) Intenta borrar el repo anterior si quedó algo root
-          sudo rm -rf "${{ github.workspace }}" || true
-          mkdir -p "${{ github.workspace }}"
-          # 2) Asegura ownership correcto del workspace
-          sudo chown -R $USER:$USER "${{ runner.workspace }}" "${{ github.workspace }}" || true
-
 
       - name: Checkout repo
         uses: actions/checkout@v4
