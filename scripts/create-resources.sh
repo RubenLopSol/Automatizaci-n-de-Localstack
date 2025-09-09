@@ -24,7 +24,7 @@ awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb create-table \
   --region "$AWS_DEFAULT_REGION" || true
 
 awslocal --endpoint-url="$LOCALSTACK_ENDPOINT" dynamodb describe-table \
-  --table-name "$TABLE_NAME" --region "$AWS_DEFAULT_REGION" \
+  --table-name "$TABLE_COMMENTS" --region "$AWS_DEFAULT_REGION" \
   --query 'Table.TableName'
 
 # DynamoDB - Tabla products
